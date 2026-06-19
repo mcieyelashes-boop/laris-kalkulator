@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laris · Kalkulator Harga Jual buat Penjual Online</title>
+<meta name="description" content="Berhenti asal tembak harga. Hitung HPP, harga jual ideal, fee marketplace, & untung bersih dalam hitungan detik. Gratis dipakai.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234f8cff'/%3E%3Ctext x='32' y='44' font-size='38' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3ERp%3C/text%3E%3C/svg%3E">
+<style>
+  /* ====== EDIT 2 LINK INI SETELAH PUNYA URL ======
+     app.html    : aplikasi kalkulator (sudah disiapkan di folder yang sama)
+     lynk.id link : alamat halaman bayar kamu (Lynk.id / Mayar)
+     Cari teks "GANTI-INI" di bawah. */
+  :root {
+    --bg:#0f1115; --bg2:#13161d; --card:#181b22; --card2:#1f232c; --line:#2a2f3a;
+    --text:#e7e9ee; --muted:#9aa3b2; --accent:#4f8cff; --green:#2ecc71; --red:#ff5c5c;
+    --gold:#ffb74d;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:920px;margin:0 auto;padding:0 18px;}
+  .btn{display:inline-block;border:none;border-radius:11px;padding:14px 26px;font-size:16px;font-weight:700;cursor:pointer;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.gold{background:linear-gradient(135deg,#ffb74d,#ff9800);color:#3a2600;}
+  .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line);}
+  .btn:hover{filter:brightness(1.08);}
+  .center{text-align:center;}
+
+  nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0;}
+  .logo{font-size:20px;font-weight:800;} .logo .b{color:var(--accent);}
+
+  .hero{text-align:center;padding:48px 0 40px;background:radial-gradient(ellipse at top,#1a2238,transparent 70%);}
+  .hero h1{font-size:40px;line-height:1.15;margin:0 0 16px;}
+  .hero h1 .hl{color:var(--accent);}
+  .hero p.lead{font-size:18px;color:var(--muted);max-width:620px;margin:0 auto 28px;}
+  .hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+  .trust{margin-top:18px;font-size:13px;color:var(--muted);}
+
+  section{padding:46px 0;}
+  h2.sec{font-size:28px;text-align:center;margin:0 0 8px;}
+  p.subsec{text-align:center;color:var(--muted);max-width:600px;margin:0 auto 30px;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;}
+  .card .ico{font-size:28px;}
+  .card h3{margin:10px 0 6px;font-size:17px;}
+  .card p{margin:0;color:var(--muted);font-size:14px;}
+
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .ba .col{border-radius:16px;padding:22px;}
+  .ba .bad{background:rgba(255,92,92,.08);border:1px solid rgba(255,92,92,.25);}
+  .ba .good{background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.25);}
+  .ba h3{margin:0 0 12px;font-size:16px;}
+  .ba ul{margin:0;padding-left:18px;} .ba li{margin-bottom:8px;font-size:14px;}
+  .ba .bad li::marker{content:"✗ ";} .ba .good li::marker{content:"✓ ";}
+
+  .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:680px;margin:0 auto;}
+  .plan{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;}
+  .plan.pro{border:2px solid var(--gold);position:relative;}
+  .plan .tag{position:absolute;top:-12px;right:18px;background:var(--gold);color:#3a2600;font-size:12px;font-weight:700;padding:3px 12px;border-radius:999px;}
+  .plan h3{margin:0;font-size:20px;}
+  .plan .amt{font-size:34px;font-weight:800;margin:6px 0 2px;}
+  .plan .amt small{font-size:15px;color:var(--muted);font-weight:400;}
+  .plan ul{list-style:none;padding:0;margin:16px 0;font-size:14px;}
+  .plan li{padding:6px 0;border-bottom:1px dashed var(--line);}
+  .plan li:last-child{border:none;}
+
+  details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px;}
+  summary{cursor:pointer;font-weight:600;font-size:15px;}
+  details p{color:var(--muted);font-size:14px;margin:10px 0 0;}
+
+  footer{text-align:center;padding:40px 0;color:var(--muted);font-size:13px;border-top:1px solid var(--line);}
+  .disclaimer{font-size:12px;color:var(--muted);max-width:640px;margin:24px auto 0;text-align:center;}
+
+  @media(max-width:600px){
+    .hero h1{font-size:30px;} .ba{grid-template-columns:1fr;} .price-grid{grid-template-columns:1fr;}
+    h2.sec{font-size:23px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="logo"><span class="b">Laris</span> 💰</div>
+    <a class="btn ghost" style="padding:9px 18px;font-size:14px;" href="app.html">Coba Gratis</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Berhenti <span class="hl">asal tembak harga</span>.<br>Hitung untung beneran.</h1>
+    <p class="lead">Banyak penjual rugi diam-diam karena lupa hitung fee marketplace, ongkir, &amp; kemasan. Laris ngitungin harga jual ideal + untung bersih kamu dalam hitungan detik.</p>
+    <div class="cta">
+      <a class="btn primary" href="app.html">🚀 Coba Gratis Sekarang</a>
+      <a class="btn gold" href="#harga">⭐ Lihat Paket Pro</a>
+    </div>
+    <p class="trust">Tanpa install · Jalan di HP &amp; laptop · Data tersimpan di perangkat kamu</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2 class="sec">Kenapa banyak penjual sebenarnya rugi?</h2>
+    <p class="subsec">Untung di kepala beda sama untung di rekening. Ini biang keroknya:</p>
+    <div class="grid">
+      <div class="card"><div class="ico">🏷️</div><h3>Lupa fee marketplace</h3><p>Shopee/Tokopedia/TikTok motong 5–13% tiap transaksi. Sering nggak dihitung.</p></div>
+      <div class="card"><div class="ico">📦</div><h3>Kemasan &amp; ongkir bocor</h3><p>Bubble wrap, box, free ongkir — kecil-kecil tapi makan untung.</p></div>
+      <div class="card"><div class="ico">🔥</div><h3>Diskon bikin boncos</h3><p>Ikut flash sale tanpa tahu batas diskon aman = jualan rame tapi rugi.</p></div>
+      <div class="card"><div class="ico">🤷</div><h3>Harga cuma ngira-ngira</h3><p>Ikut harga kompetitor tanpa tahu modal sendiri beda.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--bg2);">
+  <div class="wrap">
+    <h2 class="sec">Sebelum vs Sesudah pakai Laris</h2>
+    <div class="ba" style="margin-top:24px;">
+      <div class="col bad">
+        <h3>😰 Tanpa Laris</h3>
+        <ul>
+          <li>Tebak harga, deg-degan untung apa nggak</li>
+          <li>Kaget pas saldo masuk lebih kecil dari dikira</li>
+          <li>Takut kasih diskon</li>
+          <li>Nggak tahu produk mana yang paling cuan</li>
+        </ul>
+      </div>
+      <div class="col good">
+        <h3>😎 Dengan Laris</h3>
+        <ul>
+          <li>Harga jual ideal keluar otomatis + untung bersih jelas</li>
+          <li>Tahu persis berapa masuk ke kantong</li>
+          <li>Geser slider: diskon maksimum tetap untung</li>
+          <li>Laporan produk paling cuan (Pro)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="sec">Yang kamu dapat</h2>
+    <p class="subsec">Simpel, tapi ngitung semua yang penting.</p>
+    <div class="grid">
+      <div class="card"><div class="ico">🧮</div><h3>Harga jual ideal</h3><p>Dari modal + fee + target margin. Plus "harga cantik" yang enak dilihat pembeli.</p></div>
+      <div class="card"><div class="ico">🎚️</div><h3>Simulasi diskon</h3><p>Cek real-time: kalau didiskon X%, masih untung atau rugi.</p></div>
+      <div class="card"><div class="ico">🛒</div><h3>Preset marketplace</h3><p>Shopee, Tokopedia, TikTok Shop, Lazada — fee terisi otomatis.</p></div>
+      <div class="card"><div class="ico">📊</div><h3>Laporan untung <span style="color:var(--gold);font-size:12px;">PRO</span></h3><p>Grafik untung per produk &amp; produk paling cuan.</p></div>
+      <div class="card"><div class="ico">🏪</div><h3>Multi-toko <span style="color:var(--gold);font-size:12px;">PRO</span></h3><p>Kelola beberapa brand sekaligus, export &amp; cetak berlogo.</p></div>
+      <div class="card"><div class="ico">🎯</div><h3>Balik modal (BEP)</h3><p>Tahu harus jual berapa pcs/bulan biar nutup biaya tetap.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="harga" style="background:var(--bg2);">
+  <div class="wrap">
+    <h2 class="sec">Harga</h2>
+    <p class="subsec">Coba gratis dulu. Upgrade kapan aja, bayar sekali.</p>
+    <div class="price-grid">
+      <div class="plan">
+        <h3>Gratis</h3>
+        <div class="amt">Rp 0</div>
+        <ul>
+          <li>✓ Kalkulator harga &amp; untung</li>
+          <li>✓ Simulasi diskon</li>
+          <li>✓ Preset marketplace</li>
+          <li>✓ Simpan sampai 5 produk</li>
+          <li>✓ Hitung balik modal (BEP)</li>
+        </ul>
+        <a class="btn ghost" style="width:100%;text-align:center;" href="app.html">Pakai Gratis</a>
+      </div>
+      <div class="plan pro">
+        <span class="tag">PALING LARIS</span>
+        <h3>Pro ⭐</h3>
+        <!-- GANTI-INI: ganti harga sesuai keinginan -->
+        <div class="amt">Rp 49.000 <small>/ sekali bayar</small></div>
+        <ul>
+          <li>✓ Semua fitur Gratis</li>
+          <li>✓ Produk <b>tanpa batas</b></li>
+          <li>✓ Multi-toko</li>
+          <li>✓ Laporan &amp; grafik untung</li>
+          <li>✓ Cetak/PDF berlogo toko</li>
+          <li>✓ Tanpa watermark</li>
+        </ul>
+        <!-- GANTI-INI: ganti dengan link halaman bayar Lynk.id / Mayar kamu -->
+        <a class="btn gold" style="width:100%;text-align:center;" href="https://lynk.id/GANTI-INI" target="_blank" rel="noopener">⭐ Beli Pro</a>
+      </div>
+    </div>
+    <p class="disclaimer">Setelah bayar, kamu akan menerima <b>kode lisensi</b> via WhatsApp/email. Masukkan kode di aplikasi (tombol "⭐ Upgrade Pro") untuk membuka semua fitur.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap" style="max-width:680px;">
+    <h2 class="sec">Tanya jawab</h2>
+    <div style="margin-top:24px;">
+      <details><summary>Perlu install aplikasi?</summary><p>Nggak. Cukup buka di browser HP atau laptop. Jalan offline juga.</p></details>
+      <details><summary>Data jualan saya aman?</summary><p>Aman. Semua tersimpan di perangkat kamu sendiri, tidak dikirim ke server mana pun.</p></details>
+      <details><summary>Pro bayarnya bulanan?</summary><p>Nggak. Bayar sekali, pakai selamanya. Tidak ada langganan.</p></details>
+      <details><summary>Angka fee marketplace-nya akurat?</summary><p>Fee yang tampil adalah perkiraan umum dan bisa diubah manual. Tarif resmi bisa berubah per kategori — selalu cek di seller center kamu.</p></details>
+      <details><summary>Kode lisensi bisa dipakai di HP lain?</summary><p>Bisa. Masukkan kode yang sama di perangkat lain.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="center" style="padding-top:0;">
+  <div class="wrap">
+    <h2 class="sec">Siap berhenti rugi diam-diam?</h2>
+    <p class="subsec">Coba gratis sekarang — nggak sampai semenit udah kelihatan untung aslinya.</p>
+    <a class="btn primary" style="font-size:18px;padding:16px 34px;" href="app.html">🚀 Mulai Hitung Gratis</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo" style="font-size:18px;margin-bottom:6px;"><span class="b">Laris</span> 💰</div>
+    Kalkulator harga jual &amp; untung buat penjual online Indonesia.<br>
+    © 2026 Laris. Dibuat buat UMKM Indonesia.
+  </div>
+</footer>
+</body>
+</html>

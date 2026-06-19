@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laris · Kalkulator Harga Jual & Untung</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234f8cff'/%3E%3Ctext x='32' y='44' font-size='38' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3ERp%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0f1115; --card: #181b22; --card2: #1f232c; --line: #2a2f3a;
+    --text: #e7e9ee; --muted: #9aa3b2; --accent: #4f8cff; --accent2: #2d3a55;
+    --green: #2ecc71; --red: #ff5c5c; --yellow: #ffcc4d; --gold: #ffb74d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 22px 16px 80px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  h1 { font-size: 21px; margin: 0; }
+  .brand { color: var(--accent); }
+  .sub { color: var(--muted); font-size: 13px; margin: 2px 0 16px; }
+  .header-btns { display: flex; gap: 6px; align-items: center; }
+  .notif-btn { position: relative; }
+  .notif-dot { position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; border-radius: 50%; background: var(--red); border: 2px solid var(--card); }
+  .upd { border-bottom: 1px solid var(--line); padding: 12px 0; }
+  .upd:last-child { border-bottom: none; }
+  .upd .d { font-size: 11px; color: var(--muted); }
+  .upd .mp { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .4px; }
+  .upd .t { font-size: 14px; margin: 2px 0 4px; }
+  .upd a.src { font-size: 12px; color: var(--accent); }
+  .feeupd { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  .tabs { display: flex; gap: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 5px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 90px; text-align: center; padding: 9px 8px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; user-select: none; border: none; background: none; position: relative; }
+  .tab.active { background: var(--accent); color: #fff; }
+  .tab .lock { font-size: 10px; }
+  .panel { display: none; } .panel.active { display: block; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 0 0 14px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .row:last-child { margin-bottom: 0; }
+  .row label { font-size: 14px; flex: 1; }
+  .row .hint { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .input-wrap { position: relative; width: 180px; flex-shrink: 0; }
+  .input-wrap .pre, .input-wrap .post { position: absolute; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
+  .input-wrap .pre { left: 12px; } .input-wrap .post { right: 12px; }
+  input[type=number], input[type=text], select {
+    width: 100%; background: var(--card2); border: 1px solid var(--line); border-radius: 9px;
+    color: var(--text); padding: 10px 12px; font-size: 15px; -moz-appearance: textfield;
+  }
+  .input-wrap input[type=number] { padding-left: 32px; text-align: right; }
+  .input-wrap input.pct { padding-left: 12px; padding-right: 28px; }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  select { cursor: pointer; }
+
+  .result-big { background: linear-gradient(135deg, #1d2740, #161a22); border: 1px solid var(--accent2); }
+  .price { font-size: 33px; font-weight: 700; margin: 4px 0 2px; }
+  .pill { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 999px; margin-top: 6px; }
+  .pill.ok { background: rgba(46,204,113,.15); color: var(--green); }
+  .cantik { margin-top: 12px; font-size: 14px; color: var(--muted); background: var(--card2); border: 1px solid var(--line); border-radius: 9px; padding: 9px 12px; }
+  .cantik b { color: var(--text); font-size: 16px; }
+  .cantik-untung { display: block; font-size: 12px; margin-top: 2px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 10px; cursor: pointer; user-select: none; }
+  .toggle input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+  .breakdown { font-size: 13px; margin-top: 16px; }
+  .breakdown .b { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .breakdown .b:last-child { border-bottom: none; }
+  .breakdown .b.total { font-weight: 700; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 10px; }
+  .breakdown .b span:last-child { font-variant-numeric: tabular-nums; }
+
+  .slider-val { font-size: 26px; font-weight: 700; }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin: 8px 0; }
+  .sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .stat { background: var(--card2); border-radius: 10px; padding: 12px; }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .stat .v { font-size: 19px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .v.green { color: var(--green); } .v.red { color: var(--red); } .v.yellow { color: var(--yellow); }
+  .verdict { margin-top: 14px; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; text-align: center; }
+  .verdict.green { background: rgba(46,204,113,.12); color: var(--green); }
+  .verdict.red { background: rgba(255,92,92,.12); color: var(--red); }
+  .verdict.yellow { background: rgba(255,204,77,.12); color: var(--yellow); }
+
+  .btn { background: var(--accent); color: #fff; border: none; border-radius: 9px; padding: 11px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: var(--card2); color: var(--text); border: 1px solid var(--line); }
+  .btn.gold { background: linear-gradient(135deg, #ffb74d, #ff9800); color: #3a2600; }
+  .btn.sm { padding: 7px 12px; font-size: 13px; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: right; padding: 9px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; white-space: normal; }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  td.pos { color: var(--green); } td.neg { color: var(--red); }
+  .empty { text-align: center; color: var(--muted); padding: 24px; font-size: 14px; }
+  .del { color: var(--red); cursor: pointer; background: none; border: none; font-size: 15px; }
+
+  /* Pro badge */
+  .probadge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(255,183,77,.18); color: var(--gold); border: 1px solid rgba(255,183,77,.4); text-transform: uppercase; letter-spacing: .5px; }
+  .lockcard { text-align: center; padding: 34px 18px; }
+  .lockcard .ico { font-size: 38px; }
+  .lockcard h3 { margin: 8px 0 4px; }
+  .lockcard p { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+
+  /* report chart */
+  .bar-row { margin-bottom: 10px; }
+  .bar-row .bl { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px; }
+  .bar-track { background: var(--card2); border-radius: 6px; height: 16px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, #4f8cff, #2ecc71); border-radius: 6px; }
+  .bar-fill.neg { background: linear-gradient(90deg, #ff7b7b, #ff5c5c); }
+
+  /* modal */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+  .overlay.show { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--line); border-radius: 16px; max-width: 440px; width: 100%; padding: 22px; }
+  .modal h2 { margin: 0 0 6px; font-size: 19px; }
+  .modal .feat { font-size: 14px; margin: 12px 0; }
+  .modal .feat li { margin-bottom: 6px; }
+  .close-x { float: right; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+
+  .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+  .watermark { text-align: center; font-size: 12px; color: var(--gold); margin-top: 18px; }
+  .note { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  @media (max-width: 540px) {
+    .row { flex-wrap: wrap; } .input-wrap { width: 100%; }
+    .price { font-size: 28px; } th, td { padding: 8px 5px; font-size: 12px; }
+  }
+  @media print {
+    body { background: #fff; color: #000; }
+    .tabs, .btn-row, .note, .foot, .del, .header-btns, .watermark { display: none !important; }
+    .panel { display: none !important; } #panel-produk { display: block !important; }
+    .card { border: none; padding: 0; background: #fff; }
+    .card h2, h1 { color: #000; } th, td { border-color: #ccc; color: #000; }
+    td.pos { color: #0a0; } td.neg { color: #c00; }
+    #printHeader { display: block !important; }
+  }
+  #printHeader { display: none; margin-bottom: 14px; }
+  #printHeader img { max-height: 48px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="printHeader"></div>
+
+  <header class="top">
+    <h1><span class="brand">Laris</span> · Kalkulator Harga Jual <span class="probadge" id="proBadge" style="display:none;">PRO</span></h1>
+    <div class="header-btns">
+      <button class="btn ghost sm notif-btn" id="btnNotif" type="button" title="Update fee marketplace">🔔<span class="notif-dot" id="notifDot" style="display:none;"></span></button>
+      <button class="btn ghost sm" id="btnHelp" type="button">❔</button>
+      <button class="btn gold sm" id="btnUpgrade" type="button">⭐ Upgrade Pro</button>
+    </div>
+  </header>
+  <p class="sub">Hitung HPP, harga jual ideal, simulasi diskon, daftar produk, &amp; balik modal (BEP). Jalan offline.</p>
+
+  <div class="card help" id="helpBox" style="display:none;">
+    <h2>Cara pakai (1 menit)</h2>
+    <ol class="help-list" style="margin:0; padding-left:20px; font-size:14px;">
+      <li>Isi modal di tab Kalkulator: bahan, tenaga, kemasan, ongkir.</li>
+      <li>Pilih marketplace &amp; target untung (margin). Harga jual ideal langsung keluar.</li>
+      <li>Lihat harga cantik buat harga yang enak dilihat pembeli.</li>
+      <li>Geser simulasi diskon buat cek "kalau didiskon masih untung nggak".</li>
+      <li>Simpan tiap produk → kelola di tab Produk Saya, export/cetak kapan aja.</li>
+      <li>Tab Laporan (Pro) buat lihat produk paling cuan &amp; grafik untung.</li>
+    </ol>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="calc">Kalkulator</button>
+    <button class="tab" data-tab="produk">Produk Saya</button>
+    <button class="tab" data-tab="laporan">Laporan <span class="lock" id="lockLaporan">🔒</span></button>
+    <button class="tab" data-tab="bep">Balik Modal</button>
+  </div>
+
+  <!-- ============ KALKULATOR ============ -->
+  <section class="panel active" id="panel-calc">
+    <div class="card">
+      <h2>1. Modal per produk (HPP)</h2>
+      <div class="row"><label>Biaya bahan / kulakan<span class="hint">Harga beli / bahan baku per item</span></label>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="bahan" value="15000" min="0"></div></div>
+      <div class="row"><label>Tenaga / ongkos produksi<span class="hint">Upah, listrik, jasa per item</span></label>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="tenaga" value="3000" min="0"></div></div>
+      <div class="row"><label>Kemasan<span class="hint">Box, bubble wrap, label, stiker</span></label>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="kemasan" value="2000" min="0"></div></div>
+      <div class="row"><label>Ongkir ditanggung penjual<span class="hint">Isi 0 kalau ongkir dibayar pembeli</span></label>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="ongkir" value="0" min="0"></div></div>
+    </div>
+
+    <div class="card">
+      <h2>2. Biaya marketplace &amp; target</h2>
+      <div class="row"><label>Pilih marketplace<span class="hint">Isi otomatis perkiraan fee — bisa diubah</span></label>
+        <div class="input-wrap" style="width:200px;">
+          <select id="mp">
+            <option value="0">Toko sendiri / offline (0%)</option>
+            <option value="8" selected>Shopee (~8%)</option>
+            <option value="6.5">Tokopedia (~6,5%)</option>
+            <option value="8">TikTok Shop (~8%)</option>
+            <option value="7">Lazada (~7%)</option>
+            <option value="-1">Manual…</option>
+          </select></div></div>
+      <div class="row"><label>Fee marketplace<span class="hint">Admin + layanan. Cek lagi di seller center</span></label>
+        <div class="input-wrap"><input type="number" id="fee" class="pct" value="8" min="0" step="0.5"><span class="post">%</span></div></div>
+      <div class="row"><label>Biaya lain per order<span class="hint">Iklan dibagi rata, free ongkir share, dll</span></label>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="lain" value="1000" min="0"></div></div>
+      <div class="row"><label>Target margin keuntungan<span class="hint">Untung bersih yang kamu mau (dari harga jual)</span></label>
+        <div class="input-wrap"><input type="number" id="margin" class="pct" value="30" min="0" step="1"><span class="post">%</span></div></div>
+      <p class="note">⚠️ Angka fee cuma perkiraan umum &amp; bisa berubah per kategori. Cek tarif resmi di seller center kamu.</p>
+      <p class="feeupd" id="feeUpd"></p>
+    </div>
+
+    <div class="card result-big">
+      <h2>Harga jual ideal</h2>
+      <div class="price" id="hargaIdeal">Rp 0</div>
+      <div class="pill ok" id="untungPill">Untung Rp 0 / item</div>
+      <div id="cantikWrap" class="cantik">
+        <span>💡 Harga cantik:</span> <b id="hargaCantik">Rp 0</b>
+        <span class="cantik-untung" id="cantikUntung"></span>
+        <label class="toggle"><input type="checkbox" id="cantikOn" checked> Bulatkan harga otomatis</label>
+      </div>
+      <div class="breakdown" id="breakdown"></div>
+      <div class="row" style="margin-top:16px;">
+        <input type="text" id="namaProduk" placeholder="Nama produk (mis. Kaos Polos Hitam)" style="flex:1;">
+        <button class="btn sm" id="btnSimpan" style="flex-shrink:0;">+ Simpan</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Simulasi diskon</h2>
+      <p class="sub" style="margin:-6px 0 8px;">Geser: kalau jual pakai diskon, masih untung apa boncos?</p>
+      <div class="row" style="margin-bottom:4px;"><label>Diskon dari harga jual ideal</label><span class="slider-val" id="diskonLabel">0%</span></div>
+      <input type="range" id="diskon" min="0" max="70" value="0" step="1">
+      <div class="sim-grid">
+        <div class="stat"><div class="k">Harga setelah diskon</div><div class="v" id="hargaDiskon">Rp 0</div></div>
+        <div class="stat"><div class="k">Untung / rugi per item</div><div class="v" id="untungDiskon">Rp 0</div></div>
+        <div class="stat"><div class="k">Margin baru</div><div class="v" id="marginDiskon">0%</div></div>
+        <div class="stat"><div class="k">Diskon maks. masih untung</div><div class="v" id="diskonMaks">0%</div></div>
+      </div>
+      <div class="verdict green" id="verdict">Aman, masih untung</div>
+    </div>
+  </section>
+
+  <!-- ============ PRODUK SAYA ============ -->
+  <section class="panel" id="panel-produk">
+    <div class="card">
+      <div class="row" style="margin-bottom:14px;">
+        <label style="flex:0 0 auto;">Toko:</label>
+        <div class="input-wrap" style="width:auto; flex:1;"><select id="tokoSel"></select></div>
+        <button class="btn ghost sm" id="btnAddToko" style="flex-shrink:0;">+ Toko</button>
+      </div>
+      <div id="tabelProduk"></div>
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn ghost sm" id="btnExport">⬇ Export CSV</button>
+        <button class="btn ghost sm" id="btnCopy">📋 Salin ringkasan</button>
+        <button class="btn ghost sm" id="btnPrint">🖨 Cetak / PDF</button>
+        <button class="btn ghost sm" id="btnClear">🗑 Hapus semua</button>
+      </div>
+      <p class="note" id="produkNote">Produk disimpan di browser ini. Versi gratis maks 5 produk per toko.</p>
+    </div>
+  </section>
+
+  <!-- ============ LAPORAN (PRO) ============ -->
+  <section class="panel" id="panel-laporan"></section>
+
+  <!-- ============ BEP ============ -->
+  <section class="panel" id="panel-bep">
+    <div class="card">
+      <h2>Berapa harus jual biar balik modal?</h2>
+      <p class="sub" style="margin:-6px 0 14px;">Hitung Break-Even Point dari biaya tetap bulanan.</p>
+      <div class="row"><label>Biaya tetap per bulan<span class="hint">Sewa, gaji, internet, langganan tool</span></label>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="bepFixed" value="3000000" min="0"></div></div>
+      <div class="row"><label>Untung bersih rata-rata per item<span class="hint">Otomatis dari kalkulator, bisa diubah</span></label>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="bepProfit" value="10000" min="0"></div></div>
+    </div>
+    <div class="card result-big">
+      <h2>Hasil BEP</h2>
+      <div class="sim-grid"><div class="stat"><div class="k">Harus jual / bulan</div><div class="v" id="bepUnit">0 pcs</div></div>
+        <div class="stat"><div class="k">Harus jual / hari (30 hari)</div><div class="v" id="bepDay">0 pcs</div></div></div>
+      <div class="verdict yellow" id="bepNote" style="margin-top:14px;">Isi datanya di atas</div>
+    </div>
+  </section>
+
+  <div class="watermark" id="watermark">🔒 Versi Gratis · dibuat dengan <b>Laris</b></div>
+  <p class="foot">Semua data tersimpan lokal di browser kamu. Tidak ada yang dikirim ke mana pun.</p>
+</div>
+
+<!-- ============ MODAL UPGRADE ============ -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="close-x" id="modalClose">✕</button>
+    <h2>⭐ Laris Pro</h2>
+    <p class="sub" style="margin:0;">Buka semua fitur dengan kode lisensi.</p>
+    <ul class="feat" style="padding-left:18px;">
+      <li>♾️ Produk <b>tanpa batas</b> (gratis maks 5)</li>
+      <li>🏪 <b>Multi-toko</b> — kelola beberapa brand</li>
+      <li>📊 <b>Laporan &amp; grafik</b> untung</li>
+      <li>🧾 <b>Cetak/PDF berlogo</b> nama toko sendiri</li>
+      <li>✨ Watermark <b>hilang</b></li>
+    </ul>
+    <div id="proInactive">
+      <p class="note" style="margin-bottom:6px;">Sudah beli? Masukkan kode lisensi:</p>
+      <div class="row">
+        <input type="text" id="licenseInput" placeholder="LARIS-XXXXX-XXXXX-XXXXX" style="flex:1; text-transform:uppercase;">
+        <button class="btn sm" id="btnActivate" style="flex-shrink:0;">Aktifkan</button>
+      </div>
+      <div id="licenseMsg" style="font-size:13px; margin-top:8px;"></div>
+    </div>
+    <div id="proActive" style="display:none;">
+      <div class="verdict green" style="margin-top:4px;">✅ Pro aktif. Makasih sudah mendukung!</div>
+      <button class="btn ghost sm" id="btnDeactivate" style="margin-top:10px;">Nonaktifkan di perangkat ini</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL NOTIFIKASI UPDATE FEE ============ -->
+<div class="overlay" id="notifOverlay">
+  <div class="modal">
+    <button class="close-x" id="notifClose">✕</button>
+    <h2>🔔 Update Fee Marketplace</h2>
+    <p class="sub" style="margin:0 0 6px;">Pengumuman perubahan biaya dari marketplace. Klik sumber buat baca resminya.</p>
+    <div id="notifList"></div>
+    <p class="note" style="margin-top:12px;">Angka di app bisa beda dari yang kamu bayar (tergantung kategori &amp; program). Patokan paling akurat: laporan settlement di akun seller kamu.</p>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const rp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  const num = id => parseFloat($(id).value) || 0;
+  const calcIds = ['bahan','tenaga','kemasan','ongkir','fee','lain','margin','diskon'];
+  const FREE_LIMIT = 5;
+  const SALT = 'L4r1s-Pr0-2026-x9Qz';
+
+  /* ---------- Config fee + pengumuman (default bundled, bisa di-override config.json online) ---------- */
+  const DEFAULT_CONFIG = {
+    feesUpdated: "2026-05-18",
+    marketplaces: [
+      { label: "Toko sendiri / offline", fee: 0,   note: "0%" },
+      { label: "Shopee",                 fee: 8,   note: "~2,5–11,7% per kategori" },
+      { label: "Tokopedia",              fee: 8,   note: "~1–10% per kategori" },
+      { label: "TikTok Shop",            fee: 8,   note: "~2,5–12,2% per kategori" },
+      { label: "Lazada",                 fee: 7,   note: "~tergantung kategori" }
+    ],
+    announcements: [
+      { date: "2026-05-18", mp: "Tokopedia & TikTok Shop", title: "Struktur komisi baru — batas maksimum biaya per item naik dari Rp40.000 jadi Rp650.000.", url: "https://katadata.co.id/digital/e-commerce/6a0a8ae3741b3/tiktok-shop-tokopedia-sesuaikan-biaya-admin-seller-per-18-mei-ada-yang-naik" },
+      { date: "2026-05-02", mp: "Shopee", title: "Penyesuaian biaya program Gratis Ongkir XTRA (~1–8%, maks Rp40.000/produk).", url: "https://help.shopee.co.id" },
+      { date: "2026-05-01", mp: "TikTok Shop", title: "Mulai mengenakan biaya layanan logistik untuk semua pesanan baru.", url: "https://seller-id.tiktok.com" },
+      { date: "2026-01-01", mp: "Shopee", title: "Pembaruan struktur biaya administrasi (kisaran 2,5–11,7% per kategori).", url: "https://help.shopee.co.id" }
+    ]
+  };
+  let CONFIG = DEFAULT_CONFIG;
+
+  async function loadConfig(){
+    try {
+      const res = await fetch('config.json', { cache: 'no-store' });
+      if (res.ok) {
+        const c = await res.json();
+        if (c && Array.isArray(c.marketplaces)) CONFIG = c;
+      }
+    } catch(e) { /* offline / file:// → pakai default bundled */ }
+    buildMarketplaces();
+    renderNotif();
+  }
+
+  function buildMarketplaces(){
+    const sel = $('mp');
+    const cur = sel.value;
+    sel.innerHTML = CONFIG.marketplaces.map((m,i) =>
+      `<option value="${m.fee}" ${i===1?'selected':''}>${m.label} (${m.note})</option>`).join('')
+      + '<option value="-1">Manual…</option>';
+    // pertahankan pilihan kalau masih ada, kalau tidak set fee dari opsi terpilih
+    if ([...sel.options].some(o=>o.value===cur)) sel.value = cur;
+    if (parseFloat(sel.value) >= 0) $('fee').value = sel.value;
+    $('feeUpd').textContent = '🔄 Patokan fee diperbarui: ' + fmtDate(CONFIG.feesUpdated);
+    calc();
+  }
+
+  function fmtDate(s){ try{ return new Date(s).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}); }catch(e){ return s; } }
+
+  /* ---------- Notifikasi update fee ---------- */
+  function renderNotif(){
+    const list = CONFIG.announcements || [];
+    const el = $('notifList');
+    const checked = CONFIG.lastChecked ? `<p class="feeupd" style="margin:0 0 8px;">🤖 Dicek otomatis terakhir: ${fmtDate(CONFIG.lastChecked)}</p>` : '';
+    el.innerHTML = checked + (list.length ? list.map(a =>
+      `<div class="upd"><span class="mp">${escapeHtml(a.mp)}</span> <span class="d">· ${fmtDate(a.date)}</span>
+       <div class="t">${escapeHtml(a.title)}</div>
+       <a class="src" href="${encodeURI(a.url)}" target="_blank" rel="noopener">Lihat sumber resmi →</a></div>`).join('')
+      : '<p class="note">Belum ada update.</p>');
+    // dot merah kalau ada pengumuman lebih baru dari yang terakhir dilihat
+    const latest = list.map(a=>a.date).sort().slice(-1)[0] || '';
+    const seen = localStorage.getItem('khj_notifSeen') || '';
+    $('notifDot').style.display = (latest && latest > seen) ? 'block' : 'none';
+  }
+  function openNotif(){
+    $('notifOverlay').classList.add('show');
+    const latest = (CONFIG.announcements||[]).map(a=>a.date).sort().slice(-1)[0] || '';
+    if (latest) localStorage.setItem('khj_notifSeen', latest);
+    $('notifDot').style.display = 'none';
+  }
+
+  /* ---------- License (cyrb53 checksum, offline) ---------- */
+  function cyrb53(str, seed=0){let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(let i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0);}
+  function checkBlock(g1, g2){ let h = cyrb53(g1 + '-' + g2 + '|' + SALT).toString(36).toUpperCase(); return (h + '00000').slice(0,5); }
+  function validLicense(key){
+    if (!key) return false;
+    const m = String(key).trim().toUpperCase().match(/^LARIS-([A-Z0-9]{5})-([A-Z0-9]{5})-([A-Z0-9]{5})$/);
+    if (!m) return false;
+    return checkBlock(m[1], m[2]) === m[3];
+  }
+  let isPro = false;
+  function loadPro(){
+    const key = localStorage.getItem('khj_license');
+    isPro = !!(key && validLicense(key));
+  }
+
+  /* ---------- Tabs ---------- */
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    const tab = t.dataset.tab;
+    if (tab === 'laporan' && !isPro) { openModal(); return; }
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    $('panel-' + tab).classList.add('active');
+    if (tab === 'produk') renderProduk();
+    if (tab === 'laporan') renderLaporan();
+  }));
+
+  /* ---------- Marketplace preset ---------- */
+  $('mp').addEventListener('change', e => { const v = parseFloat(e.target.value); if (v >= 0) { $('fee').value = v; calc(); } else $('fee').focus(); });
+
+  /* ---------- Harga cantik ---------- */
+  function roundCantik(h){ if (h<=0) return 0; let s=h<10000?500:h<50000?1000:h<200000?5000:10000; let up=Math.ceil(h/s)*s; const e=up-100; return e>=h?e:up; }
+
+  /* ---------- Help & toggle ---------- */
+  $('btnHelp').addEventListener('click', () => { const b=$('helpBox'); b.style.display = b.style.display==='none'?'block':'none'; });
+  $('cantikOn').addEventListener('change', () => { localStorage.setItem('khj_cantikOn', $('cantikOn').checked?'1':'0'); calc(); });
+
+  /* ---------- Core calc ---------- */
+  let lastSave = 0, lastSaveUntung = 0;
+  function calc(){
+    const bahan=num('bahan'),tenaga=num('tenaga'),kemasan=num('kemasan'),ongkir=num('ongkir'),lain=num('lain');
+    const feePct=num('fee')/100, marginPct=num('margin')/100;
+    const modal=bahan+tenaga+kemasan+ongkir+lain;
+    const denom=1-feePct-marginPct;
+    const hargaIdeal=denom>0?modal/denom:0;
+    const untung=hargaIdeal-modal-hargaIdeal*feePct;
+    $('hargaIdeal').textContent = denom>0?rp(hargaIdeal):'⚠️ fee+margin ≥ 100%';
+    $('untungPill').textContent = 'Untung '+rp(untung)+' / item';
+    $('breakdown').innerHTML = `
+      <div class="b"><span>Modal bahan + produksi + kemasan</span><span>${rp(bahan+tenaga+kemasan)}</span></div>
+      <div class="b"><span>Ongkir + biaya lain</span><span>${rp(ongkir+lain)}</span></div>
+      <div class="b"><span>Fee marketplace (${num('fee')}%)</span><span>${rp(hargaIdeal*feePct)}</span></div>
+      <div class="b"><span>Untung bersih (${num('margin')}%)</span><span>${rp(untung)}</span></div>
+      <div class="b total"><span>Harga jual</span><span>${rp(hargaIdeal)}</span></div>`;
+
+    const cantikOn=$('cantikOn').checked, cantik=roundCantik(hargaIdeal);
+    const untungCantik=cantik-modal-cantik*feePct;
+    $('hargaCantik').textContent = rp(cantik);
+    $('cantikUntung').textContent = denom>0?'untung jadi '+rp(untungCantik)+' / item':'';
+    $('cantikWrap').style.display = denom>0?'block':'none';
+    lastSave = cantikOn?cantik:Math.round(hargaIdeal);
+    lastSaveUntung = cantikOn?untungCantik:untung;
+
+    const d=num('diskon')/100; $('diskonLabel').textContent=num('diskon')+'%';
+    const hargaD=hargaIdeal*(1-d), untungD=hargaD-modal-hargaD*feePct;
+    const marginD=hargaD>0?(untungD/hargaD)*100:0;
+    let diskonMaks=0; if(hargaIdeal>0&&(1-feePct)>0){ diskonMaks=(1-modal/(hargaIdeal*(1-feePct)))*100; if(diskonMaks<0)diskonMaks=0; }
+    $('hargaDiskon').textContent=rp(hargaD);
+    const uEl=$('untungDiskon'); uEl.textContent=(untungD<0?'−':'')+rp(Math.abs(untungD)); uEl.className='v '+(untungD>0?'green':untungD<0?'red':'yellow');
+    const mEl=$('marginDiskon'); mEl.textContent=marginD.toFixed(1)+'%'; mEl.className='v '+(marginD>0?'green':'red');
+    $('diskonMaks').textContent=diskonMaks.toFixed(0)+'%';
+    const vEl=$('verdict');
+    if(untungD>0.05*hargaD){vEl.className='verdict green';vEl.textContent='✅ Aman, masih untung sehat';}
+    else if(untungD>0){vEl.className='verdict yellow';vEl.textContent='⚠️ Tipis banget, untung hampir habis';}
+    else if(Math.abs(untungD)<1){vEl.className='verdict yellow';vEl.textContent='⚠️ Pas balik modal, nggak untung';}
+    else{vEl.className='verdict red';vEl.textContent='🚨 RUGI '+rp(Math.abs(untungD))+' per item!';}
+
+    calcIds.forEach(id=>localStorage.setItem('khj_'+id,$(id).value));
+    if(untung>0 && !$('bepProfit').dataset.touched) $('bepProfit').value=Math.round(untung);
+    calcBep();
+  }
+
+  /* ---------- Multi-toko data ---------- */
+  function getToko(){ try { return JSON.parse(localStorage.getItem('khj_toko')||'[]'); } catch(e){ return []; } }
+  function setToko(arr){ localStorage.setItem('khj_toko', JSON.stringify(arr)); }
+  function activeId(){ return localStorage.getItem('khj_activeToko') || (getToko()[0]||{}).id; }
+  function activeToko(){ const a=getToko(); return a.find(t=>t.id===activeId()) || a[0]; }
+  function saveActive(t){ const a=getToko(); const i=a.findIndex(x=>x.id===t.id); if(i>=0){a[i]=t;setToko(a);} }
+  function ensureToko(){
+    let a=getToko();
+    if(!a.length){
+      // migrate old single list if exists
+      let old=[]; try{ old=JSON.parse(localStorage.getItem('khj_produk')||'[]'); }catch(e){}
+      a=[{id:'t'+Date.now(), nama:'Toko Saya', produk:old}];
+      setToko(a); localStorage.setItem('khj_activeToko', a[0].id);
+      localStorage.removeItem('khj_produk');
+    }
+    if(!getToko().find(t=>t.id===activeId())) localStorage.setItem('khj_activeToko', getToko()[0].id);
+  }
+
+  function renderTokoSel(){
+    const a=getToko(), sel=$('tokoSel');
+    sel.innerHTML = a.map(t=>`<option value="${t.id}" ${t.id===activeId()?'selected':''}>${escapeHtml(t.nama)}</option>`).join('');
+  }
+  $('tokoSel').addEventListener('change', e => { localStorage.setItem('khj_activeToko', e.target.value); renderProduk(); });
+  $('btnAddToko').addEventListener('click', () => {
+    if(!isPro){ openModal(); return; }
+    const nama=prompt('Nama toko baru:'); if(!nama) return;
+    const a=getToko(); const t={id:'t'+Date.now(), nama:nama.trim()||'Toko', produk:[]};
+    a.push(t); setToko(a); localStorage.setItem('khj_activeToko', t.id); renderProduk();
+  });
+
+  /* ---------- Save produk ---------- */
+  $('btnSimpan').addEventListener('click', () => {
+    ensureToko();
+    const t=activeToko();
+    if(!isPro && t.produk.length>=FREE_LIMIT){ openModal(); return; }
+    const nama=($('namaProduk').value||'').trim()||'Tanpa nama';
+    t.produk.push({ nama, modal:num('bahan')+num('tenaga')+num('kemasan')+num('ongkir')+num('lain'),
+      fee:num('fee'), margin:num('margin'), harga:Math.round(lastSave), untung:Math.round(lastSaveUntung) });
+    saveActive(t);
+    $('namaProduk').value='';
+    $('btnSimpan').textContent='✓ Tersimpan!'; setTimeout(()=>$('btnSimpan').textContent='+ Simpan',1400);
+  });
+
+  function renderProduk(){
+    ensureToko(); renderTokoSel();
+    const t=activeToko(), arr=t.produk, el=$('tabelProduk');
+    $('produkNote').textContent = isPro ? 'Produk & toko tanpa batas (Pro aktif).' : `Versi gratis maks ${FREE_LIMIT} produk per toko · ${arr.length}/${FREE_LIMIT} terpakai.`;
+    if(!arr.length){ el.innerHTML='<div class="empty">Belum ada produk. Hitung di tab Kalkulator lalu klik "Simpan".</div>'; return; }
+    const rows=arr.map((p,i)=>`<tr><td>${escapeHtml(p.nama)}</td><td>${rp(p.modal)}</td><td>${rp(p.harga)}</td>
+      <td class="${p.untung>=0?'pos':'neg'}">${rp(p.untung)}</td><td>${p.margin}%</td>
+      <td><button class="del" data-i="${i}" title="Hapus">✕</button></td></tr>`).join('');
+    const tot=arr.reduce((s,p)=>s+p.untung,0);
+    el.innerHTML=`<table><thead><tr><th>Produk</th><th>Modal</th><th>Harga jual</th><th>Untung/item</th><th>Margin</th><th></th></tr></thead>
+      <tbody>${rows}</tbody><tfoot><tr><td><b>Total ${arr.length} produk</b></td><td colspan="2"></td>
+      <td class="${tot>=0?'pos':'neg'}"><b>${rp(tot)}</b></td><td colspan="2"></td></tr></tfoot></table>`;
+    el.querySelectorAll('.del').forEach(b=>b.addEventListener('click',()=>{ const tt=activeToko(); tt.produk.splice(+b.dataset.i,1); saveActive(tt); renderProduk(); }));
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  /* ---------- Export / copy / print / clear ---------- */
+  $('btnExport').addEventListener('click', () => {
+    const arr=activeToko().produk; if(!arr.length) return alert('Belum ada produk untuk di-export.');
+    const head=['Produk','Modal','Harga Jual','Untung per item','Margin %','Fee %'];
+    const lines=[head.join(',')].concat(arr.map(p=>[`"${p.nama.replace(/"/g,'""')}"`,p.modal,p.harga,p.untung,p.margin,p.fee].join(',')));
+    const blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(activeToko().nama||'produk')+'.csv'; a.click();
+  });
+  $('btnCopy').addEventListener('click', async () => {
+    const arr=activeToko().produk; if(!arr.length) return alert('Belum ada produk.');
+    const txt=arr.map(p=>`${p.nama}: jual ${rp(p.harga)}, untung ${rp(p.untung)}/item (margin ${p.margin}%)`).join('\n');
+    try{ await navigator.clipboard.writeText(txt); $('btnCopy').textContent='✓ Tersalin'; setTimeout(()=>$('btnCopy').textContent='📋 Salin ringkasan',1400);}catch(e){ alert(txt); }
+  });
+  $('btnPrint').addEventListener('click', () => {
+    if(!activeToko().produk.length) return alert('Belum ada produk untuk dicetak.');
+    const ph=$('printHeader');
+    if(isPro){ const nm=localStorage.getItem('khj_shopName')||activeToko().nama; const lg=localStorage.getItem('khj_shopLogo');
+      ph.innerHTML=(lg?`<img src="${lg}"><br>`:'')+`<b style="font-size:18px;">${escapeHtml(nm)}</b><br><span style="font-size:12px;color:#555;">Daftar Harga · ${new Date().toLocaleDateString('id-ID')}</span>`;
+    } else { ph.innerHTML=`<b style="font-size:16px;">Daftar Harga</b> · ${new Date().toLocaleDateString('id-ID')}<br><span style="font-size:11px;color:#888;">dibuat dengan Laris</span>`; }
+    window.print();
+  });
+  $('btnClear').addEventListener('click', () => { if(confirm('Hapus semua produk di toko ini?')){ const t=activeToko(); t.produk=[]; saveActive(t); renderProduk(); } });
+
+  /* ---------- Laporan (Pro) ---------- */
+  function renderLaporan(){
+    const el=$('panel-laporan');
+    if(!isPro){ el.innerHTML=`<div class="card lockcard"><div class="ico">📊🔒</div><h3>Laporan ada di Laris Pro</h3>
+      <p>Lihat produk paling cuan, total untung, &amp; grafik margin.</p><button class="btn gold" onclick="openModal()">⭐ Upgrade Pro</button></div>`; return; }
+    const arr=activeToko().produk;
+    if(!arr.length){ el.innerHTML='<div class="card empty">Belum ada produk di toko ini buat dilaporkan.</div>'; return; }
+    const tot=arr.reduce((s,p)=>s+p.untung,0);
+    const avgM=(arr.reduce((s,p)=>s+(+p.margin||0),0)/arr.length).toFixed(1);
+    const top=arr.reduce((a,b)=>b.untung>a.untung?b:a,arr[0]);
+    const maxU=Math.max(...arr.map(p=>Math.abs(p.untung)),1);
+    const bars=arr.slice().sort((a,b)=>b.untung-a.untung).map(p=>{
+      const w=Math.max(2,Math.abs(p.untung)/maxU*100);
+      return `<div class="bar-row"><div class="bl"><span>${escapeHtml(p.nama)}</span><span class="${p.untung>=0?'':'neg'}" style="${p.untung<0?'color:var(--red)':''}">${rp(p.untung)}</span></div>
+        <div class="bar-track"><div class="bar-fill ${p.untung<0?'neg':''}" style="width:${w}%"></div></div></div>`;
+    }).join('');
+    el.innerHTML=`<div class="card"><h2>Ringkasan toko: ${escapeHtml(activeToko().nama)}</h2>
+      <div class="sim-grid"><div class="stat"><div class="k">Total produk</div><div class="v">${arr.length}</div></div>
+      <div class="stat"><div class="k">Total untung/item</div><div class="v ${tot>=0?'green':'red'}">${rp(tot)}</div></div>
+      <div class="stat"><div class="k">Margin rata-rata</div><div class="v">${avgM}%</div></div>
+      <div class="stat"><div class="k">Paling cuan</div><div class="v" style="font-size:15px;">${escapeHtml(top.nama)}</div></div></div></div>
+      <div class="card"><h2>Grafik untung per produk</h2>${bars}</div>
+      <div class="card"><h2>Identitas toko (buat cetakan)</h2>
+        <div class="row"><label>Nama toko di struk</label><div class="input-wrap" style="width:220px;"><input type="text" id="shopName" placeholder="Nama toko kamu"></div></div>
+        <div class="row"><label>Logo (opsional)<span class="hint">Muncul di cetak/PDF</span></label><input type="file" id="shopLogo" accept="image/*" style="flex:0 0 auto;"></div>
+        <p class="note">Tersimpan lokal. Dipakai saat kamu klik Cetak/PDF di tab Produk.</p></div>`;
+    $('shopName').value = localStorage.getItem('khj_shopName')||'';
+    $('shopName').addEventListener('input', e=>localStorage.setItem('khj_shopName', e.target.value));
+    $('shopLogo').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>localStorage.setItem('khj_shopLogo', r.result); r.readAsDataURL(f); });
+  }
+
+  /* ---------- BEP ---------- */
+  $('bepProfit').addEventListener('input', () => $('bepProfit').dataset.touched='1');
+  ['bepFixed','bepProfit'].forEach(id=>$(id).addEventListener('input', calcBep));
+  function calcBep(){
+    const fixed=num('bepFixed'), profit=num('bepProfit');
+    const unit=profit>0?Math.ceil(fixed/profit):0;
+    $('bepUnit').textContent=profit>0?unit.toLocaleString('id-ID')+' pcs':'—';
+    $('bepDay').textContent=profit>0?Math.ceil(unit/30).toLocaleString('id-ID')+' pcs':'—';
+    const note=$('bepNote');
+    if(profit<=0){note.className='verdict yellow';note.textContent='Untung per item harus > 0';}
+    else{note.className='verdict green';note.textContent=`Jual ${unit.toLocaleString('id-ID')} pcs/bulan buat nutup biaya tetap. Lebih dari itu = untung bersih.`;}
+  }
+
+  /* ---------- Pro modal & activation ---------- */
+  function openModal(){ syncProUI(); $('overlay').classList.add('show'); }
+  function closeModal(){ $('overlay').classList.remove('show'); }
+  window.openModal = openModal;
+  $('btnUpgrade').addEventListener('click', openModal);
+  $('modalClose').addEventListener('click', closeModal);
+  $('overlay').addEventListener('click', e=>{ if(e.target===$('overlay')) closeModal(); });
+  $('btnActivate').addEventListener('click', () => {
+    const key=($('licenseInput').value||'').trim().toUpperCase();
+    const msg=$('licenseMsg');
+    if(validLicense(key)){ localStorage.setItem('khj_license', key); loadPro(); applyPro();
+      msg.style.color='var(--green)'; msg.textContent='✅ Kode valid! Pro aktif.'; setTimeout(()=>{ syncProUI(); },600);
+    } else { msg.style.color='var(--red)'; msg.textContent='❌ Kode tidak valid. Cek lagi atau hubungi penjual.'; }
+  });
+  $('btnDeactivate').addEventListener('click', () => { localStorage.removeItem('khj_license'); loadPro(); applyPro(); syncProUI(); });
+
+  /* ---------- Notif modal wiring ---------- */
+  $('btnNotif').addEventListener('click', openNotif);
+  $('notifClose').addEventListener('click', () => $('notifOverlay').classList.remove('show'));
+  $('notifOverlay').addEventListener('click', e=>{ if(e.target===$('notifOverlay')) $('notifOverlay').classList.remove('show'); });
+  function syncProUI(){ $('proInactive').style.display=isPro?'none':'block'; $('proActive').style.display=isPro?'block':'none'; }
+  function applyPro(){
+    $('proBadge').style.display = isPro?'inline-block':'none';
+    $('btnUpgrade').style.display = isPro?'none':'inline-block';
+    $('lockLaporan').style.display = isPro?'none':'inline';
+    $('watermark').style.display = isPro?'none':'block';
+    if($('panel-produk').classList.contains('active')) renderProduk();
+    if($('panel-laporan').classList.contains('active')) renderLaporan();
+  }
+
+  /* ---------- Init ---------- */
+  calcIds.forEach(id=>{ const v=localStorage.getItem('khj_'+id); if(v!==null)$(id).value=v; });
+  calcIds.forEach(id=>$(id).addEventListener('input', calc));
+  if(localStorage.getItem('khj_cantikOn')==='0') $('cantikOn').checked=false;
+  loadPro(); ensureToko(); applyPro(); calc();
+  loadConfig(); // ambil fee + pengumuman terbaru (online), fallback ke default kalau offline
+</script>
+</body>
+</html>
