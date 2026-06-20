@@ -2,31 +2,23 @@
   "_petunjuk": "announcements di-update otomatis oleh robot (GitHub Actions). Angka fee di marketplaces tetap manual & aman diubah tangan.",
   "feesUpdated": "2026-05-18",
   "marketplaces": [
-    {
-      "label": "Toko sendiri / offline",
-      "fee": 0,
-      "note": "0%"
-    },
-    {
-      "label": "Shopee",
-      "fee": 8,
-      "note": "~2,5–11,7% per kategori"
-    },
-    {
-      "label": "Tokopedia",
-      "fee": 8,
-      "note": "~1–10% per kategori"
-    },
-    {
-      "label": "TikTok Shop",
-      "fee": 8,
-      "note": "~2,5–12,2% per kategori"
-    },
-    {
-      "label": "Lazada",
-      "fee": 7,
-      "note": "~tergantung kategori"
-    }
+    { "label": "Toko sendiri / offline", "fee": 0, "note": "0%", "categories": [] },
+    { "label": "Shopee", "fee": 8, "note": "~2,5–11,7%", "categories": [
+      { "name": "Fashion & Aksesoris", "fee": 8 }, { "name": "Elektronik & Gadget", "fee": 4.5 },
+      { "name": "Kecantikan & Perawatan", "fee": 7.5 }, { "name": "Makanan & Minuman", "fee": 6 },
+      { "name": "Rumah Tangga", "fee": 8 }, { "name": "Lainnya / Umum", "fee": 8 } ] },
+    { "label": "Tokopedia", "fee": 8, "note": "~1–10%", "categories": [
+      { "name": "Fashion & Aksesoris", "fee": 8 }, { "name": "Elektronik & Gadget", "fee": 4.5 },
+      { "name": "Kecantikan & Perawatan", "fee": 7.5 }, { "name": "Makanan & Minuman", "fee": 6 },
+      { "name": "Rumah Tangga", "fee": 7 }, { "name": "Lainnya / Umum", "fee": 8 } ] },
+    { "label": "TikTok Shop", "fee": 8, "note": "~2,5–12,2%", "categories": [
+      { "name": "Fashion & Aksesoris", "fee": 6 }, { "name": "Elektronik & Gadget", "fee": 4 },
+      { "name": "Kecantikan & Perawatan", "fee": 7 }, { "name": "Makanan & Minuman", "fee": 6 },
+      { "name": "Rumah Tangga", "fee": 6 }, { "name": "Lainnya / Umum", "fee": 8 } ] },
+    { "label": "Lazada", "fee": 7, "note": "~tergantung kategori", "categories": [
+      { "name": "Fashion & Aksesoris", "fee": 7 }, { "name": "Elektronik & Gadget", "fee": 4 },
+      { "name": "Kecantikan & Perawatan", "fee": 6 }, { "name": "Makanan & Minuman", "fee": 5 },
+      { "name": "Rumah Tangga", "fee": 6 }, { "name": "Lainnya / Umum", "fee": 7 } ] }
   ],
   "announcements": [
     {
@@ -78,5 +70,5 @@
       "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQMG5NSFZ5elUwMV9TZnNXSG5CN3pDSUtVNnZ0Ul9qUFJmM2lHRDFYVHQ1TVJ5Q1FKSkd3Zk5yc2prbWNyNWF1ODJtdXpZREFONzVrbTdwbTB3TWJ4MVBBWDVCVlV6b0xad1oyYnhPR3BMZ1BFNWMtNFhpY3pOSUt0VENYTEJ5MmtOOFZqWlJMVkExOVA1eFpyZHdQdS1adGdtNzEwb3hqdWvSAaABQVVfeXFMTjZ4NVVEaFJUX2paMi1OdEp5QjdsMUcxY2dCRG1JUE5PcTdUTzBsVW9JRnM4dFp1Q25teGtLMlZTWE90QWhRQjJDX3IwSlFDUlFYRHZTbkRfekZuc2F4Szdlb2pJX3E4TV9feGtsM05QRmI5dEliWXlpRzJ2QmZucVJVazZvNWdaZnR6dGxoT0tSYUoxY1hGQkQ5ZG1IbGNwUA?oc=5"
     }
   ],
-  "lastChecked": "2026-06-20"
+  "lastChecked": "2026-06-19"
 }

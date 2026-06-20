@@ -199,7 +199,9 @@
             <option value="7">Lazada (~7%)</option>
             <option value="-1">Manual…</option>
           </select></div></div>
-      <div class="row"><label>Fee marketplace<span class="hint">Admin + layanan. Cek lagi di seller center</span></label>
+      <div class="row" id="catRow"><label>Kategori produk<span class="hint">Fee terisi otomatis sesuai kategori — bisa diubah</span></label>
+        <div class="input-wrap" style="width:200px;"><select id="kategori"></select></div></div>
+      <div class="row"><label>Fee marketplace<span class="hint">Auto dari kategori · bisa kamu timpa manual</span></label>
         <div class="input-wrap"><input type="number" id="fee" class="pct" value="8" min="0" step="0.5"><span class="post">%</span></div></div>
       <div class="row"><label>Biaya lain per order<span class="hint">Iklan dibagi rata, free ongkir share, dll</span></label>
         <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="lain" value="1000" min="0"></div></div>
@@ -335,11 +337,23 @@
   const DEFAULT_CONFIG = {
     feesUpdated: "2026-05-18",
     marketplaces: [
-      { label: "Toko sendiri / offline", fee: 0,   note: "0%" },
-      { label: "Shopee",                 fee: 8,   note: "~2,5–11,7% per kategori" },
-      { label: "Tokopedia",              fee: 8,   note: "~1–10% per kategori" },
-      { label: "TikTok Shop",            fee: 8,   note: "~2,5–12,2% per kategori" },
-      { label: "Lazada",                 fee: 7,   note: "~tergantung kategori" }
+      { label: "Toko sendiri / offline", fee: 0, note: "0%", categories: [] },
+      { label: "Shopee", fee: 8, note: "~2,5–11,7%", categories: [
+        { name: "Fashion & Aksesoris", fee: 8 }, { name: "Elektronik & Gadget", fee: 4.5 },
+        { name: "Kecantikan & Perawatan", fee: 7.5 }, { name: "Makanan & Minuman", fee: 6 },
+        { name: "Rumah Tangga", fee: 8 }, { name: "Lainnya / Umum", fee: 8 } ] },
+      { label: "Tokopedia", fee: 8, note: "~1–10%", categories: [
+        { name: "Fashion & Aksesoris", fee: 8 }, { name: "Elektronik & Gadget", fee: 4.5 },
+        { name: "Kecantikan & Perawatan", fee: 7.5 }, { name: "Makanan & Minuman", fee: 6 },
+        { name: "Rumah Tangga", fee: 7 }, { name: "Lainnya / Umum", fee: 8 } ] },
+      { label: "TikTok Shop", fee: 8, note: "~2,5–12,2%", categories: [
+        { name: "Fashion & Aksesoris", fee: 6 }, { name: "Elektronik & Gadget", fee: 4 },
+        { name: "Kecantikan & Perawatan", fee: 7 }, { name: "Makanan & Minuman", fee: 6 },
+        { name: "Rumah Tangga", fee: 6 }, { name: "Lainnya / Umum", fee: 8 } ] },
+      { label: "Lazada", fee: 7, note: "~tergantung kategori", categories: [
+        { name: "Fashion & Aksesoris", fee: 7 }, { name: "Elektronik & Gadget", fee: 4 },
+        { name: "Kecantikan & Perawatan", fee: 6 }, { name: "Makanan & Minuman", fee: 5 },
+        { name: "Rumah Tangga", fee: 6 }, { name: "Lainnya / Umum", fee: 7 } ] }
     ],
     announcements: [
       { date: "2026-05-18", mp: "Tokopedia & TikTok Shop", title: "Struktur komisi baru — batas maksimum biaya per item naik dari Rp40.000 jadi Rp650.000.", url: "https://katadata.co.id/digital/e-commerce/6a0a8ae3741b3/tiktok-shop-tokopedia-sesuaikan-biaya-admin-seller-per-18-mei-ada-yang-naik" },
@@ -364,14 +378,25 @@
 
   function buildMarketplaces(){
     const sel = $('mp');
-    const cur = sel.value;
     sel.innerHTML = CONFIG.marketplaces.map((m,i) =>
-      `<option value="${m.fee}" ${i===1?'selected':''}>${m.label} (${m.note})</option>`).join('')
-      + '<option value="-1">Manual…</option>';
-    // pertahankan pilihan kalau masih ada, kalau tidak set fee dari opsi terpilih
-    if ([...sel.options].some(o=>o.value===cur)) sel.value = cur;
-    if (parseFloat(sel.value) >= 0) $('fee').value = sel.value;
+      `<option value="${i}" ${i===1?'selected':''}>${m.label} (${m.note})</option>`).join('')
+      + '<option value="manual">Manual…</option>';
+    buildCategories();
     $('feeUpd').textContent = '🔄 Patokan fee diperbarui: ' + fmtDate(CONFIG.feesUpdated);
+    calc();
+  }
+
+  // Bangun dropdown kategori dari marketplace terpilih, lalu set fee otomatis
+  function buildCategories(){
+    const sel = $('mp'), catSel = $('kategori'), catRow = $('catRow');
+    if (sel.value === 'manual') { catRow.style.display = 'none'; $('fee').focus(); return; }
+    const mp = CONFIG.marketplaces[parseInt(sel.value)];
+    if (!mp){ catRow.style.display = 'none'; return; }
+    const cats = mp.categories || [];
+    if (!cats.length){ catRow.style.display = 'none'; $('fee').value = mp.fee; calc(); return; }
+    catRow.style.display = '';
+    catSel.innerHTML = cats.map((c,i) => `<option value="${c.fee}">${c.name} (${String(c.fee).replace('.',',')}%)</option>`).join('');
+    $('fee').value = cats[0].fee;  // auto-isi fee dari kategori pertama
     calc();
   }
 
@@ -426,8 +451,9 @@
     if (tab === 'laporan') renderLaporan();
   }));
 
-  /* ---------- Marketplace preset ---------- */
-  $('mp').addEventListener('change', e => { const v = parseFloat(e.target.value); if (v >= 0) { $('fee').value = v; calc(); } else $('fee').focus(); });
+  /* ---------- Marketplace + kategori preset ---------- */
+  $('mp').addEventListener('change', buildCategories);
+  $('kategori').addEventListener('change', e => { $('fee').value = e.target.value; calc(); });
 
   /* ---------- Harga cantik ---------- */
   function roundCantik(h){ if (h<=0) return 0; let s=h<10000?500:h<50000?1000:h<200000?5000:10000; let up=Math.ceil(h/s)*s; const e=up-100; return e>=h?e:up; }
