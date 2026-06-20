@@ -407,6 +407,7 @@
       }
     } catch(e) { /* offline / file:// → pakai default bundled */ }
     buildMarketplaces();
+    restoreSelections();
     renderNotif();
   }
 
@@ -441,10 +442,25 @@
 
   // fee = fee kategori + penyesuaian tingkatan toko
   function applyFee(){
+    if ($('catRow').style.display === 'none') return; // mode manual/offline: jangan timpa fee
     const base = parseFloat($('kategori').value) || 0;
     const add = $('tierRow').style.display === 'none' ? 0 : (parseFloat($('tier').value) || 0);
     $('fee').value = Math.round((base + add) * 100) / 100;
     calc();
+  }
+
+  // Simpan & pulihkan pilihan marketplace/kategori/tingkatan + override fee manual
+  function saveSel(){ localStorage.setItem('khj_mp', $('mp').value);
+    localStorage.setItem('khj_kat', $('kategori').selectedIndex); localStorage.setItem('khj_tier', $('tier').selectedIndex); }
+  function restoreSelections(){
+    const mpv = localStorage.getItem('khj_mp'), sel = $('mp');
+    if (mpv !== null && [...sel.options].some(o => o.value === mpv)) { sel.value = mpv; onMarketplaceChange(); }
+    const ki = localStorage.getItem('khj_kat'), ti = localStorage.getItem('khj_tier');
+    if (ki !== null && $('catRow').style.display !== 'none' && +ki < $('kategori').options.length) $('kategori').selectedIndex = +ki;
+    if (ti !== null && $('tierRow').style.display !== 'none' && +ti < $('tier').options.length) $('tier').selectedIndex = +ti;
+    applyFee();
+    const fm = localStorage.getItem('khj_feeManual');
+    if (fm !== null) { $('fee').value = fm; calc(); } // hormati override manual user
   }
 
   function fmtDate(s){ try{ return new Date(s).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}); }catch(e){ return s; } }
@@ -499,9 +515,10 @@
   }));
 
   /* ---------- Marketplace + kategori preset ---------- */
-  $('mp').addEventListener('change', onMarketplaceChange);
-  $('kategori').addEventListener('change', applyFee);
-  $('tier').addEventListener('change', applyFee);
+  $('mp').addEventListener('change', () => { localStorage.removeItem('khj_feeManual'); onMarketplaceChange(); saveSel(); });
+  $('kategori').addEventListener('change', () => { localStorage.removeItem('khj_feeManual'); applyFee(); saveSel(); });
+  $('tier').addEventListener('change', () => { localStorage.removeItem('khj_feeManual'); applyFee(); saveSel(); });
+  $('fee').addEventListener('input', () => localStorage.setItem('khj_feeManual', $('fee').value)); // tandai override manual
 
   /* ---------- Harga cantik ---------- */
   function roundCantik(h){ if (h<=0) return 0; let s=h<10000?500:h<50000?1000:h<200000?5000:10000; let up=Math.ceil(h/s)*s; const e=up-100; return e>=h?e:up; }
