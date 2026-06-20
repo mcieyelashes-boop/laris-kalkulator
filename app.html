@@ -201,7 +201,9 @@
           </select></div></div>
       <div class="row" id="catRow"><label>Kategori produk<span class="hint">Fee terisi otomatis sesuai kategori — bisa diubah</span></label>
         <div class="input-wrap" style="width:200px;"><select id="kategori"></select></div></div>
-      <div class="row"><label>Fee marketplace<span class="hint">Auto dari kategori · bisa kamu timpa manual</span></label>
+      <div class="row" id="tierRow"><label>Tingkatan toko<span class="hint">Star/Mall/Power Merchant kena fee lebih tinggi</span></label>
+        <div class="input-wrap" style="width:200px;"><select id="tier"></select></div></div>
+      <div class="row"><label>Fee marketplace<span class="hint">Auto dari kategori + tingkatan · bisa kamu timpa manual</span></label>
         <div class="input-wrap"><input type="number" id="fee" class="pct" value="8" min="0" step="0.5"><span class="post">%</span></div></div>
       <div class="row"><label>Biaya lain per order<span class="hint">Iklan dibagi rata, free ongkir share, dll</span></label>
         <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="lain" value="1000" min="0"></div></div>
@@ -337,8 +339,10 @@
   const DEFAULT_CONFIG = {
     feesUpdated: "2026-05-18",
     marketplaces: [
-      { label: "Toko sendiri / offline", fee: 0, note: "0%", categories: [] },
-      { label: "Shopee", fee: 8, note: "~2,5–11,7%", categories: [
+      { label: "Toko sendiri / offline", fee: 0, note: "0%", tiers: [], categories: [] },
+      { label: "Shopee", fee: 8, note: "~2,5–11,7%",
+        tiers: [{name:"Non-Star / Reguler",add:0},{name:"Star Seller",add:0.5},{name:"Star+ Seller",add:1},{name:"Shopee Mall",add:2}],
+        categories: [
         {name:"Fashion (Pakaian, Sepatu, Tas)",fee:8},{name:"Aksesoris & Jam Tangan",fee:8},
         {name:"Handphone & Aksesoris",fee:4.5},{name:"Komputer & Laptop",fee:4.5},
         {name:"Elektronik (TV, Audio)",fee:5.25},{name:"Elektronik Rumah Tangga",fee:6.5},
@@ -348,7 +352,9 @@
         {name:"Olahraga & Outdoor",fee:8},{name:"Otomotif",fee:8},
         {name:"Logam Mulia & Perhiasan",fee:4.25},{name:"Voucher & Produk Digital",fee:2.5},
         {name:"Lainnya / Umum",fee:8} ] },
-      { label: "Tokopedia", fee: 8, note: "~1–10%", categories: [
+      { label: "Tokopedia", fee: 8, note: "~1–10%",
+        tiers: [{name:"Reguler",add:0},{name:"Power Merchant",add:0.5},{name:"Power Merchant PRO",add:1}],
+        categories: [
         {name:"Fashion (Pakaian, Sepatu, Tas)",fee:8},{name:"Aksesoris & Jam Tangan",fee:8},
         {name:"Handphone & Aksesoris",fee:4.5},{name:"Komputer & Laptop",fee:4.5},
         {name:"Elektronik (TV, Audio)",fee:5},{name:"Elektronik Rumah Tangga",fee:6.5},
@@ -358,7 +364,9 @@
         {name:"Olahraga & Outdoor",fee:8},{name:"Otomotif",fee:8},
         {name:"Logam Mulia & Perhiasan",fee:4},{name:"Voucher & Produk Digital",fee:2.5},
         {name:"Lainnya / Umum",fee:8} ] },
-      { label: "TikTok Shop", fee: 8, note: "~2,5–12,2%", categories: [
+      { label: "TikTok Shop", fee: 8, note: "~2,5–12,2%",
+        tiers: [{name:"Reguler",add:0},{name:"Mall",add:1.5}],
+        categories: [
         {name:"Fashion (Pakaian, Sepatu, Tas)",fee:6},{name:"Aksesoris & Jam Tangan",fee:6},
         {name:"Handphone & Aksesoris",fee:4},{name:"Komputer & Laptop",fee:4},
         {name:"Elektronik (TV, Audio)",fee:5},{name:"Elektronik Rumah Tangga",fee:6},
@@ -368,7 +376,9 @@
         {name:"Olahraga & Outdoor",fee:6},{name:"Otomotif",fee:6},
         {name:"Logam Mulia & Perhiasan",fee:4},{name:"Voucher & Produk Digital",fee:2.5},
         {name:"Lainnya / Umum",fee:8} ] },
-      { label: "Lazada", fee: 7, note: "~1,5–6%", categories: [
+      { label: "Lazada", fee: 7, note: "~1,5–6%",
+        tiers: [{name:"Reguler",add:0},{name:"LazMall",add:3}],
+        categories: [
         {name:"Fashion (Pakaian, Sepatu, Tas)",fee:6},{name:"Aksesoris & Jam Tangan",fee:6},
         {name:"Handphone & Aksesoris",fee:4},{name:"Komputer & Laptop",fee:4},
         {name:"Elektronik (TV, Audio)",fee:4},{name:"Elektronik Rumah Tangga",fee:5},
@@ -405,22 +415,35 @@
     sel.innerHTML = CONFIG.marketplaces.map((m,i) =>
       `<option value="${i}" ${i===1?'selected':''}>${m.label} (${m.note})</option>`).join('')
       + '<option value="manual">Manual…</option>';
-    buildCategories();
+    onMarketplaceChange();
     $('feeUpd').textContent = '🔄 Patokan fee diperbarui: ' + fmtDate(CONFIG.feesUpdated);
     calc();
   }
 
-  // Bangun dropdown kategori dari marketplace terpilih, lalu set fee otomatis
-  function buildCategories(){
-    const sel = $('mp'), catSel = $('kategori'), catRow = $('catRow');
-    if (sel.value === 'manual') { catRow.style.display = 'none'; $('fee').focus(); return; }
+  const pct = n => String(n).replace('.', ',');
+
+  // Saat marketplace ganti: bangun dropdown kategori + tingkatan toko, lalu hitung fee
+  function onMarketplaceChange(){
+    const sel = $('mp'), catRow = $('catRow'), tierRow = $('tierRow');
+    if (sel.value === 'manual') { catRow.style.display='none'; tierRow.style.display='none'; $('fee').focus(); return; }
     const mp = CONFIG.marketplaces[parseInt(sel.value)];
-    if (!mp){ catRow.style.display = 'none'; return; }
-    const cats = mp.categories || [];
-    if (!cats.length){ catRow.style.display = 'none'; $('fee').value = mp.fee; calc(); return; }
+    if (!mp){ catRow.style.display='none'; tierRow.style.display='none'; return; }
+    const cats = mp.categories || [], tiers = mp.tiers || [];
+    if (!cats.length){ catRow.style.display='none'; tierRow.style.display='none'; $('fee').value=mp.fee; calc(); return; }
     catRow.style.display = '';
-    catSel.innerHTML = cats.map((c,i) => `<option value="${c.fee}">${c.name} (${String(c.fee).replace('.',',')}%)</option>`).join('');
-    $('fee').value = cats[0].fee;  // auto-isi fee dari kategori pertama
+    $('kategori').innerHTML = cats.map(c => `<option value="${c.fee}">${c.name} (${pct(c.fee)}%)</option>`).join('');
+    if (tiers.length){
+      tierRow.style.display = '';
+      $('tier').innerHTML = tiers.map(t => `<option value="${t.add}">${t.name}${t.add?' (+'+pct(t.add)+'%)':''}</option>`).join('');
+    } else tierRow.style.display = 'none';
+    applyFee();
+  }
+
+  // fee = fee kategori + penyesuaian tingkatan toko
+  function applyFee(){
+    const base = parseFloat($('kategori').value) || 0;
+    const add = $('tierRow').style.display === 'none' ? 0 : (parseFloat($('tier').value) || 0);
+    $('fee').value = Math.round((base + add) * 100) / 100;
     calc();
   }
 
@@ -476,8 +499,9 @@
   }));
 
   /* ---------- Marketplace + kategori preset ---------- */
-  $('mp').addEventListener('change', buildCategories);
-  $('kategori').addEventListener('change', e => { $('fee').value = e.target.value; calc(); });
+  $('mp').addEventListener('change', onMarketplaceChange);
+  $('kategori').addEventListener('change', applyFee);
+  $('tier').addEventListener('change', applyFee);
 
   /* ---------- Harga cantik ---------- */
   function roundCantik(h){ if (h<=0) return 0; let s=h<10000?500:h<50000?1000:h<200000?5000:10000; let up=Math.ceil(h/s)*s; const e=up-100; return e>=h?e:up; }
