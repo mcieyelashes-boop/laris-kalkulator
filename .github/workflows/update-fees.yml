@@ -1,7 +1,9 @@
 name: Update notifikasi fee (otomatis)
 
-# Jalan otomatis tiap hari + bisa dipicu manual dari tab Actions
+# Jalan otomatis tiap hari + tiap push ke main + bisa dipicu manual dari tab Actions
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: '0 22 * * *'   # tiap hari 22:00 UTC (~05:00 WIB)
   workflow_dispatch:
