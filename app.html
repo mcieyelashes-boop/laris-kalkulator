@@ -48,7 +48,7 @@
     width: 100%; background: var(--card2); border: 1px solid var(--line); border-radius: 9px;
     color: var(--text); padding: 10px 12px; font-size: 15px; -moz-appearance: textfield;
   }
-  .input-wrap input[type=number] { padding-left: 32px; text-align: right; }
+  .input-wrap input[type=number], .input-wrap input.rp { padding-left: 32px; text-align: right; }
   .input-wrap input.pct { padding-left: 12px; padding-right: 28px; }
   input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   input:focus, select:focus { outline: none; border-color: var(--accent); }
@@ -179,13 +179,13 @@
     <div class="card">
       <h2>1. Modal per produk (HPP)</h2>
       <div class="row"><label>Biaya bahan / kulakan<span class="hint">Harga beli / bahan baku per item</span></label>
-        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="bahan" value="15000" min="0"></div></div>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="text" inputmode="numeric" class="rp" id="bahan" value="15.000"></div></div>
       <div class="row"><label>Tenaga / ongkos produksi<span class="hint">Upah, listrik, jasa per item</span></label>
-        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="tenaga" value="3000" min="0"></div></div>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="text" inputmode="numeric" class="rp" id="tenaga" value="3.000"></div></div>
       <div class="row"><label>Kemasan<span class="hint">Box, bubble wrap, label, stiker</span></label>
-        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="kemasan" value="2000" min="0"></div></div>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="text" inputmode="numeric" class="rp" id="kemasan" value="2.000"></div></div>
       <div class="row"><label>Ongkir ditanggung penjual<span class="hint">Isi 0 kalau ongkir dibayar pembeli</span></label>
-        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="ongkir" value="0" min="0"></div></div>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="text" inputmode="numeric" class="rp" id="ongkir" value="0"></div></div>
     </div>
 
     <div class="card">
@@ -207,7 +207,7 @@
       <div class="row"><label>Fee marketplace<span class="hint">Auto dari kategori + tingkatan · bisa kamu timpa manual</span></label>
         <div class="input-wrap"><input type="number" id="fee" class="pct" value="8" min="0" step="0.5"><span class="post">%</span></div></div>
       <div class="row"><label>Biaya lain per order<span class="hint">Iklan dibagi rata, free ongkir share, dll</span></label>
-        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="lain" value="1000" min="0"></div></div>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="text" inputmode="numeric" class="rp" id="lain" value="1.000"></div></div>
       <div class="row"><label>Target margin keuntungan<span class="hint">Untung bersih yang kamu mau (dari harga jual)</span></label>
         <div class="input-wrap"><input type="number" id="margin" class="pct" value="30" min="0" step="1"><span class="post">%</span></div></div>
       <p class="note">⚠️ Angka fee cuma perkiraan umum &amp; bisa berubah per kategori. Cek tarif resmi di seller center kamu.</p>
@@ -273,9 +273,9 @@
       <h2>Berapa harus jual biar balik modal?</h2>
       <p class="sub" style="margin:-6px 0 14px;">Hitung Break-Even Point dari biaya tetap bulanan.</p>
       <div class="row"><label>Biaya tetap per bulan<span class="hint">Sewa, gaji, internet, langganan tool</span></label>
-        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="bepFixed" value="3000000" min="0"></div></div>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="text" inputmode="numeric" class="rp" id="bepFixed" value="3.000.000"></div></div>
       <div class="row"><label>Untung bersih rata-rata per item<span class="hint">Otomatis dari kalkulator, bisa diubah</span></label>
-        <div class="input-wrap"><span class="pre">Rp</span><input type="number" id="bepProfit" value="10000" min="0"></div></div>
+        <div class="input-wrap"><span class="pre">Rp</span><input type="text" inputmode="numeric" class="rp" id="bepProfit" value="10.000"></div></div>
     </div>
     <div class="card result-big">
       <h2>Hasil BEP</h2>
@@ -333,6 +333,10 @@
   const rp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
   const num = id => parseFloat($(id).value) || 0;
   const calcIds = ['bahan','tenaga','kemasan','ongkir','fee','lain','margin','diskon'];
+  // Input rupiah: simpan/parse angka murni, tampilkan dengan pemisah ribuan
+  const rpIds = ['bahan','tenaga','kemasan','ongkir','lain','bepFixed','bepProfit'];
+  const rpVal = id => parseInt(String($(id).value).replace(/\D/g,''),10) || 0;
+  const fmtRibu = s => { const d=String(s).replace(/\D/g,''); return d ? parseInt(d,10).toLocaleString('id-ID') : ''; };
   const FREE_LIMIT = 5;
   const SALT = 'L4r1s-Pr0-2026-x9Qz';
 
@@ -531,7 +535,7 @@
   /* ---------- Core calc ---------- */
   let lastSave = 0, lastSaveUntung = 0;
   function calc(){
-    const bahan=num('bahan'),tenaga=num('tenaga'),kemasan=num('kemasan'),ongkir=num('ongkir'),lain=num('lain');
+    const bahan=rpVal('bahan'),tenaga=rpVal('tenaga'),kemasan=rpVal('kemasan'),ongkir=rpVal('ongkir'),lain=rpVal('lain');
     const feePct=num('fee')/100, marginPct=num('margin')/100;
     const modal=bahan+tenaga+kemasan+ongkir+lain;
     const denom=1-feePct-marginPct;
@@ -569,7 +573,7 @@
     else{vEl.className='verdict red';vEl.textContent='🚨 RUGI '+rp(Math.abs(untungD))+' per item!';}
 
     calcIds.forEach(id=>localStorage.setItem('khj_'+id,$(id).value));
-    if(untung>0 && !$('bepProfit').dataset.touched) $('bepProfit').value=Math.round(untung);
+    if(untung>0 && !$('bepProfit').dataset.touched) $('bepProfit').value=fmtRibu(Math.round(untung));
     calcBep();
   }
 
@@ -619,7 +623,7 @@
     if(!isPro && t.produk.length>=FREE_LIMIT){ openModal(); return; }
     const nama=($('namaProduk').value||'').trim()||'Tanpa nama';
     const ch=currentChannel();
-    t.produk.push({ nama, modal:num('bahan')+num('tenaga')+num('kemasan')+num('ongkir')+num('lain'),
+    t.produk.push({ nama, modal:rpVal('bahan')+rpVal('tenaga')+rpVal('kemasan')+rpVal('ongkir')+rpVal('lain'),
       fee:num('fee'), margin:num('margin'), harga:Math.round(lastSave), untung:Math.round(lastSaveUntung),
       mp:ch.mp, kat:ch.kat, tier:ch.tier });
     saveActive(t);
@@ -705,7 +709,7 @@
   $('bepProfit').addEventListener('input', () => $('bepProfit').dataset.touched='1');
   ['bepFixed','bepProfit'].forEach(id=>$(id).addEventListener('input', calcBep));
   function calcBep(){
-    const fixed=num('bepFixed'), profit=num('bepProfit');
+    const fixed=rpVal('bepFixed'), profit=rpVal('bepProfit');
     const unit=profit>0?Math.ceil(fixed/profit):0;
     $('bepUnit').textContent=profit>0?unit.toLocaleString('id-ID')+' pcs':'—';
     $('bepDay').textContent=profit>0?Math.ceil(unit/30).toLocaleString('id-ID')+' pcs':'—';
@@ -747,6 +751,9 @@
   /* ---------- Init ---------- */
   calcIds.forEach(id=>{ const v=localStorage.getItem('khj_'+id); if(v!==null)$(id).value=v; });
   calcIds.forEach(id=>$(id).addEventListener('input', calc));
+  // Format ribuan saat ngetik di input rupiah
+  rpIds.forEach(id=>$(id).addEventListener('input', ()=>{ const v=fmtRibu($(id).value); if($(id).value!==v) $(id).value=v; }));
+  rpIds.forEach(id=>{ const v=localStorage.getItem('khj_'+id); if(v!==null)$(id).value=fmtRibu(v); }); // restore + format
   if(localStorage.getItem('khj_cantikOn')==='0') $('cantikOn').checked=false;
   loadPro(); ensureToko(); applyPro(); calc();
   loadConfig(); // ambil fee + pengumuman terbaru (online), fallback ke default kalau offline
