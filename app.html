@@ -95,6 +95,7 @@
   th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
   td.pos { color: var(--green); } td.neg { color: var(--red); }
   .empty { text-align: center; color: var(--muted); padding: 24px; font-size: 14px; }
+  .chsub { font-size: 11px; color: var(--muted); font-weight: 400; }
   .del { color: var(--red); cursor: pointer; background: none; border: none; font-size: 15px; }
 
   /* Pro badge */
@@ -603,13 +604,24 @@
   });
 
   /* ---------- Save produk ---------- */
+  // Ambil nama marketplace/kategori/tingkatan yang sedang dipilih
+  function currentChannel(){
+    const sel=$('mp');
+    const mp = sel.value==='manual' ? 'Manual' : ((CONFIG.marketplaces[+sel.value]||{}).label || '');
+    const strip = s => (s||'').replace(/\s*\([^)]*\)\s*$/,'').trim();
+    const kat  = $('catRow').style.display!=='none'  ? strip(($('kategori').options[$('kategori').selectedIndex]||{}).textContent) : '';
+    const tier = $('tierRow').style.display!=='none' ? strip(($('tier').options[$('tier').selectedIndex]||{}).textContent) : '';
+    return { mp, kat, tier };
+  }
   $('btnSimpan').addEventListener('click', () => {
     ensureToko();
     const t=activeToko();
     if(!isPro && t.produk.length>=FREE_LIMIT){ openModal(); return; }
     const nama=($('namaProduk').value||'').trim()||'Tanpa nama';
+    const ch=currentChannel();
     t.produk.push({ nama, modal:num('bahan')+num('tenaga')+num('kemasan')+num('ongkir')+num('lain'),
-      fee:num('fee'), margin:num('margin'), harga:Math.round(lastSave), untung:Math.round(lastSaveUntung) });
+      fee:num('fee'), margin:num('margin'), harga:Math.round(lastSave), untung:Math.round(lastSaveUntung),
+      mp:ch.mp, kat:ch.kat, tier:ch.tier });
     saveActive(t);
     $('namaProduk').value='';
     $('btnSimpan').textContent='✓ Tersimpan!'; setTimeout(()=>$('btnSimpan').textContent='+ Simpan',1400);
@@ -620,9 +632,12 @@
     const t=activeToko(), arr=t.produk, el=$('tabelProduk');
     $('produkNote').textContent = isPro ? 'Produk & toko tanpa batas (Pro aktif).' : `Versi gratis maks ${FREE_LIMIT} produk per toko · ${arr.length}/${FREE_LIMIT} terpakai.`;
     if(!arr.length){ el.innerHTML='<div class="empty">Belum ada produk. Hitung di tab Kalkulator lalu klik "Simpan".</div>'; return; }
-    const rows=arr.map((p,i)=>`<tr><td>${escapeHtml(p.nama)}</td><td>${rp(p.modal)}</td><td>${rp(p.harga)}</td>
+    const rows=arr.map((p,i)=>{
+      const ch=[p.mp,p.kat,p.tier].filter(Boolean).join(' · ');
+      return `<tr><td>${escapeHtml(p.nama)}${ch?`<br><span class="chsub">${escapeHtml(ch)}</span>`:''}</td><td>${rp(p.modal)}</td><td>${rp(p.harga)}</td>
       <td class="${p.untung>=0?'pos':'neg'}">${rp(p.untung)}</td><td>${p.margin}%</td>
-      <td><button class="del" data-i="${i}" title="Hapus">✕</button></td></tr>`).join('');
+      <td><button class="del" data-i="${i}" title="Hapus">✕</button></td></tr>`;
+    }).join('');
     const tot=arr.reduce((s,p)=>s+p.untung,0);
     el.innerHTML=`<table><thead><tr><th>Produk</th><th>Modal</th><th>Harga jual</th><th>Untung/item</th><th>Margin</th><th></th></tr></thead>
       <tbody>${rows}</tbody><tfoot><tr><td><b>Total ${arr.length} produk</b></td><td colspan="2"></td>
@@ -634,8 +649,9 @@
   /* ---------- Export / copy / print / clear ---------- */
   $('btnExport').addEventListener('click', () => {
     const arr=activeToko().produk; if(!arr.length) return alert('Belum ada produk untuk di-export.');
-    const head=['Produk','Modal','Harga Jual','Untung per item','Margin %','Fee %'];
-    const lines=[head.join(',')].concat(arr.map(p=>[`"${p.nama.replace(/"/g,'""')}"`,p.modal,p.harga,p.untung,p.margin,p.fee].join(',')));
+    const q=s=>`"${String(s||'').replace(/"/g,'""')}"`;
+    const head=['Produk','Marketplace','Kategori','Tingkatan','Modal','Harga Jual','Untung per item','Margin %','Fee %'];
+    const lines=[head.join(',')].concat(arr.map(p=>[q(p.nama),q(p.mp),q(p.kat),q(p.tier),p.modal,p.harga,p.untung,p.margin,p.fee].join(',')));
     const blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(activeToko().nama||'produk')+'.csv'; a.click();
   });
